@@ -10,6 +10,22 @@
 #include <locale.h>
 #include <sys/time.h>
 #define SECONDS_IN_TROPICAL_YEAR (365.24219 * 24 * 60 *60)
+#define BUF_SIZE 1000
+
+char *currTime(const char*format)
+{
+    static char buf[BUF_SIZE];
+    time_t t;
+    size_t s;
+    struct tm *tm;
+
+    t = time(NULL);
+    tm = localtime(&t);
+    if (tm == NULL) return NULL;
+    s = strftime(buf, BUF_SIZE, (format != NULL) ? format : "%c", tm);
+    printf("%s\n", buf);
+    return (s == 0) ? NULL : buf;
+}
 
 int main()
 {
@@ -26,20 +42,20 @@ int main()
         printf("gettimeofday");
     printf("gettimeofday() returned %ld secs, %ld microsecs\n", (long)tv.tv_sec, (long)tv.tv_usec);
 
+    //函数gmtime()能够把日历时间转换一个对应于UTC的分解时间
     gmp = gmtime(&t);
     if (gmp == NULL)
         printf("gmtime");
-
     gm = *gmp;
     printf("Broken down by gmtime():\n");
     printf("year = %d mon = %d mday = %d hour = %d min = %d sec = %d",
           gm.tm_year, gm.tm_mon, gm.tm_mday, gm.tm_hour, gm.tm_min, gm.tm_sec);
     printf("wday = %d yday = %d isdst = %d\n", gm.tm_wday, gm.tm_yday, gm.tm_isdst);
 
+    //考虑时区,返回对应于系统本地的一个分解时间
     locp = localtime(&t);
     if (locp == NULL)
         printf("localtime");
-
     loc = *locp;
     printf("Broken down by localtime():\n");
     printf("year = %d mon = %d mday = %d hour = %d min = %d sec = %d",
@@ -51,5 +67,11 @@ int main()
 
     printf("mktime() of gmtime() value: %ld secs\n", (long)mktime(&gm));
     printf("mktime() of localtime() value: %ld secs\n", (long)mktime(&loc));
+
+    char *ct = ctime(&t);
+    printf("%s", ct);
+    
+    //用户格式的本地化字符串 
+    currTime(NULL);
 
 }
